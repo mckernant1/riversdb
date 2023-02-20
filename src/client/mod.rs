@@ -3,7 +3,6 @@ use std::{
     path::{Path, PathBuf},
 };
 
-use bytes::Bytes;
 use itertools::Itertools;
 
 use crate::{
@@ -57,7 +56,7 @@ impl Rivers {
         };
     }
 
-    pub fn get<T: Into<Bytes>>(&self, get: GetRequest) -> GetResponse {
+    pub fn get(&self, get: GetRequest) -> GetResponse {
         let key = get.key;
         if let Some(entry) = self.memtable.get(&key) {
             return GetResponse::Success {
