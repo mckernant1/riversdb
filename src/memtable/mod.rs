@@ -1,5 +1,7 @@
-use crate::models::{Key, Entry, Value};
 use chrono::Utc;
+
+use crate::models::{Entry, Key, Value};
+
 use std::collections::BTreeSet;
 
 pub struct MemTable {
@@ -8,18 +10,18 @@ pub struct MemTable {
 }
 
 impl MemTable {
-    fn new() -> Self {
+    pub fn new() -> Self {
         Self {
             entries: Default::default(),
             size: 0,
         }
     }
 
-    fn get(&self, key: &Key) -> Option<&Entry> {
+    pub fn get(&self, key: &Key) -> Option<&Entry> {
         self.entries.iter().find(|it| it.key == key)
     }
 
-    fn put(&mut self, key: Key, value: Value) {
+    pub fn put(&mut self, key: Key, value: Value) {
         let entry = Entry {
             key: key.clone(),
             value: Some(value.clone()),
@@ -38,13 +40,8 @@ impl MemTable {
         self.entries.insert(entry);
     }
 
-    fn delete(&mut self, key: Key) {
-        let entry = Entry {
-            key: key.clone(),
-            value: None,
-            timestamp: Utc::now().timestamp_micros() as u128,
-            deleted: true,
-        };
+    pub fn delete(&mut self, key: Key) {
+        let entry = Entry::deleted(key.clone());
 
         self.size -= match self.get(&key) {
             Some(old) => old.value.as_ref().map(|it| it.len()).unwrap_or(0) + 16 + 1,
@@ -52,11 +49,17 @@ impl MemTable {
         };
         self.entries.insert(entry);
     }
+
+    pub fn clear(&mut self) {
+        self.entries.clear();
+        self.size = 0;
+    }
 }
 
 #[cfg(test)]
 mod test {
     use bytes::Bytes;
+
     use super::MemTable;
 
     #[test]
