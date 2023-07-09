@@ -1,7 +1,4 @@
-use std::{
-    fs::read_dir,
-    path::{Path, PathBuf},
-};
+use std::{fs::read_dir, path::PathBuf};
 
 use itertools::Itertools;
 
@@ -17,7 +14,7 @@ use crate::{
     wal::{WALIterator, WAL},
 };
 
-const RVR_EXT: &'static str = ".rvr";
+const RVR_EXT: &'static str = "rvr";
 
 pub struct Rivers {
     storage_dir: PathBuf,
@@ -27,7 +24,7 @@ pub struct Rivers {
 
 impl Rivers {
     pub fn new(storage_dir: PathBuf) -> Result<Self> {
-        let current_wal = WAL::new(&Path::new(RVR_EXT))?;
+        let current_wal = WAL::new(&storage_dir.to_path_buf())?;
         Ok(Self {
             storage_dir,
             memtable: MemTable::new(),
@@ -73,8 +70,10 @@ impl Rivers {
             return GetResponse::Error { err: e };
         }
 
+        println!("Got {}", all_files.len());
         let key: Key = key.into();
         for file in all_files {
+            println!("Looking at {}", file.to_str().unwrap());
             let mut iter = match WALIterator::new(&file) {
                 Ok(t) => t,
                 Err(e) => return GetResponse::Error { err: e },
@@ -102,7 +101,7 @@ impl Rivers {
             .filter_map(|it| it.ok())
             .sorted_by_key(|it| it.file_name())
             .map(|it| it.path())
-            .filter(|it| it.extension().map(|it| it == RVR_EXT).unwrap_or(false))
+            .filter(|it| it.extension().map(|it| it == RVR_EXT).unwrap())
             .collect())
     }
 }

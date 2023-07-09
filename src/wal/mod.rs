@@ -19,7 +19,6 @@ pub struct WAL {
 impl WAL {
     pub fn new(dir: &Path) -> Result<Self> {
         let ts = Utc::now().timestamp_micros();
-
         let path = Path::new(dir).join(format!("{}.rvr", ts));
         let file = OpenOptions::new().append(true).create(true).open(&path)?;
         let writer = BufWriter::new(file);
